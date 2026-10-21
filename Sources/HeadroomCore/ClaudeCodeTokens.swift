@@ -40,12 +40,13 @@ public enum ClaudeCodeTokens {
   public static var defaultStatsFile: URL { claudeHome.appendingPathComponent("stats-cache.json") }
   public static var defaultLogRoot: URL { claudeHome.appendingPathComponent("projects") }
 
-  /// Prefers Claude Code's own stats cache (it also remembers history whose logs were cleaned up),
-  /// falling back to summing the session logs.
+  /// The stats cache remembers history whose logs were cleaned up, but Claude Code only refreshes
+  /// it occasionally, so it goes stale. The session logs are always current but may be incomplete.
+  /// Whichever is larger is the better estimate.
   public static func lifetimeTotal(
     statsFile: URL = defaultStatsFile, logRoot: URL = defaultLogRoot
   ) -> Int? {
-    totalFromStatsCache(statsFile) ?? totalFromLogs(logRoot)
+    [totalFromStatsCache(statsFile), totalFromLogs(logRoot)].compactMap { $0 }.max()
   }
 
   static func totalFromStatsCache(_ file: URL) -> Int? {

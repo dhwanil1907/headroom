@@ -45,8 +45,8 @@ import Testing
 @Suite struct TokenTests {
   @Test func compactFormatting() {
     #expect(TokenFormat.compact(950) == "950")
-    #expect(TokenFormat.compact(1_234_567) == "1.23M")
-    #expect(TokenFormat.compact(2_500_000_000) == "2.50B")
+    #expect(TokenFormat.compact(1_234_567) == "1.2346M")
+    #expect(TokenFormat.compact(2_500_000_000) == "2.5000B")
   }
 
   @Test func claudeCodeUsesStatsCacheThenLogs() throws {
@@ -61,7 +61,13 @@ import Testing
 
     let cache = #"{"modelUsage":{"a":{"inputTokens":1,"outputTokens":2,"cacheReadInputTokens":3,"cacheCreationInputTokens":4},"b":{"outputTokens":10}}}"#
     try cache.write(to: stats, atomically: true, encoding: .utf8)
-    #expect(ClaudeCodeTokens.lifetimeTotal(statsFile: stats, logRoot: dir) == 20)
+    // Stale cache (20) is below the live logs (230), so the logs win.
+    #expect(ClaudeCodeTokens.lifetimeTotal(statsFile: stats, logRoot: dir) == 230)
+
+    // Cache remembers history whose logs were deleted, so the larger cache wins.
+    let bigCache = #"{"modelUsage":{"a":{"outputTokens":1000}}}"#
+    try bigCache.write(to: stats, atomically: true, encoding: .utf8)
+    #expect(ClaudeCodeTokens.lifetimeTotal(statsFile: stats, logRoot: dir) == 1000)
   }
 }
 

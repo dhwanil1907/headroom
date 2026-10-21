@@ -68,12 +68,12 @@ extension UsageProvider {
 }
 
 public enum TokenFormat {
-  /// Compact display, e.g. 1_234_567 -> "1.23M".
+  /// Compact display, e.g. 1_234_567 -> "1.2346M".
   public static func compact(_ count: Int) -> String {
     let units: [(Double, String)] = [(1e9, "B"), (1e6, "M"), (1e3, "K")]
     let value = Double(count)
     for (size, suffix) in units where value >= size {
-      return String(format: "%.2f%@", value / size, suffix)
+      return String(format: "%.4f%@", value / size, suffix)
     }
     return String(count)
   }
